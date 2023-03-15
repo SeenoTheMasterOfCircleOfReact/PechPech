@@ -25,7 +25,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "state";
 
-const MyPostWidget = ({ picturePath }) => {
+const MyPostWidget = ({ picturePath, userId, isProfile = false }) => {
   const dispatch = useDispatch();
   const [isImage, setIsImage] = useState(false);
   const [image, setImage] = useState(null);
@@ -51,9 +51,32 @@ const MyPostWidget = ({ picturePath }) => {
       body: formData,
     });
     const posts = await response.json();
-    dispatch(setPosts({ posts }));
+
+    isProfile ? getUserPosts() : getPosts();
     setImage(null);
     setPost("");
+  };
+
+  const getPosts = async () => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}posts`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+    dispatch(setPosts({ posts: data.reverse() }));
+  };
+
+  const getUserPosts = async () => {
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}posts/${userId}/posts`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await response.json();
+    console.log(data);
+    dispatch(setPosts({ posts: data.reverse() }));
   };
 
   return (
